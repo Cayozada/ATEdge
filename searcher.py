@@ -35,6 +35,14 @@ class BingSearcher:
             time.sleep(time_per_frame)  
             current_frame += 1 
         print(f"{message}, concluído!")
+    
+    def script_info(self, info, level):
+        if(level == 0):
+            return f"[INFO]: {info}"
+        elif(level == 1):
+            return input(f"[INPUT]: {info}").lower()
+        elif(level == 2):
+            return f"[ERROR]: {info}"
 
     def _catch_edge_version(self):
         options = EdgeOptions()
@@ -58,21 +66,21 @@ class BingSearcher:
             zip_ref.extractall(default_path)
 
     def _make_path_webdriver(self):
-        print("[INFO]: O caminho padrão do webdriver não foi encontrado, irei criá-lo para voce :)")
-        print("[INFO]: Aguarde!")
+        print(self.script_info("O caminho padrão do webdriver não foi encontrado, irei criá-lo para voce :)", 0))
+        print(self.script_info("Aguarde!", 0))
         zip_path = self._make_download(self._catch_edge_version())
-        self.show_loading_animation("[INFO]: Baixando a última versão do webdriver", 4)
-        self.show_loading_animation("[INFO]: Extraindo", 4)
+        self.show_loading_animation(self.script_info("Baixando a última versão do webdriver", 0), 4)
+        self.show_loading_animation(self.script_info("Extraindo", 0), 4)
         self._extract_last_version(zip_path, self._get_default_path())
         os.remove(zip_path)
     
     def _verify_webdriver_path(self, path_webdriver):
-        self.show_loading_animation("[INFO]: Procurando webdriver", 4)
+        self.show_loading_animation(self.script_info("Procurando webdriver", 0), 4)
         if not os.path.exists(path_webdriver):
             self._make_path_webdriver()
             return path_webdriver
         elif os.path.exists(path_webdriver):
-            print("[INFO]: O caminho padrão foi encontrado!")
+            print(self.script_info("O caminho padrão foi encontrado!", 0))
             return path_webdriver
 
     def _set_webdriver_path(self):
@@ -91,14 +99,14 @@ class BingSearcher:
         if edge_processes:
             for process in edge_processes:
                 process.kill()
-            self.show_loading_animation("[INFO]: Fechando instâncias do Microsoft Edge em andamento", 4)
-            print("[INFO]: Instâncias do Microsoft Edge em execução fechadas com sucesso.")
+            self.show_loading_animation(self.script_info("Fechando instâncias do Microsoft Edge em andamento", 0), 4)
+            print(self.script_info("Instâncias do Microsoft Edge em execução fechadas com sucesso.", 0))
         else:
-            self.show_loading_animation("[INFO]: Não foram encontradas instâncias do Microsoft Edge em execução, prosseguindo", 10)
-            print("[INFO]: Aguarde!")
+            self.show_loading_animation(self.script_info("Não foram encontradas instâncias do Microsoft Edge em execução, prosseguindo", 0), 6)
+            print(self.script_info("Aguarde!", 0))
 
     def _treat_instance_error(self):
-        command = input("[INFO]: Digite [R] para atualizar o webdriver e [Q] para sair: ").lower()
+        command = self.script_info("Digite [R] para atualizar o webdriver e [Q] para sair: ", 1)
         if(command == "q"):
             raise SystemExit
         if(command == "r"):
@@ -111,53 +119,45 @@ class BingSearcher:
             edge_driver_path = Service(f"{self.webdriver_path}")
             self.driver = Edge(service=edge_driver_path, options=self._set_edge_options())
         except Exception as e:
-            print("[ERROR]: Houve um erro ao instanciar O Edge webdriver")
-            print("[INFO]: A versão do webdriver pode estar incompatível!!")
-            print("[INFO]: Veja o log para mais informações")
+            print(self.script_info("Houve um erro ao instanciar O Edge webdriver", 2))
+            print(self.script_info("A versão do webdriver pode estar incompatível!!", 0))
+            print(self.script_info("Veja o log para mais informações", 0))
             with open('error_log.txt', 'w') as f:
                 f.write(str(e) + '\n')
                 traceback.print_exc(file=f)
             self._treat_instance_error()
 
     def _get_search_number(self):
-        search_option = input("[INPUT]: Deseja inserir o número de pesquisas? [S]-sim / [N]-não: ").lower()
+        search_option = self.script_info("Deseja inserir o número de pesquisas? [S]-sim / [N]-não: ", 1)
         if(search_option == "s"):
             while True:
                 try:
-                    search_number = int(input("[INPUT]: Digite o número de pesquisas que deseja realizar: "))
+                    search_number = int(self.script_info("Digite o número de pesquisas que deseja realizar: ", 1))
                     if search_number > 0:
                         return search_number
                     else:
-                        print("[INFO]: Número inválido, digite um número maior que 0.")
+                        self.script_info("Número inválido, digite um número maior que 0.", 0)
                 except ValueError:
-                    print("[INFO]: Entrada inválida, digite um número inteiro maior que 0.")
+                    self.script_info("Entrada inválida, digite um número inteiro maior que 0.", 0)
         elif(search_option == "n"):
-            print("[INFO]: Usarei o valor padrão (50 pesquisas)!")
+            self.script_info("Usarei o valor padrão (50 pesquisas)!", 0)
             search_number = 50
             return search_number
                 
     def _search_bing(self, search_term):
         self.driver.get("https://www.bing.com/") 
-        search_box = self.driver.find_element("name", "q")  
+        search_box = self.driver.find_element("name", "q")  #type: ignore
         search_box.send_keys(search_term)
+        time.sleep(3)
         search_box.send_keys(Keys.RETURN)
-        time.sleep(random.uniform(1, 2))
 
     def _init_searches(self):
-        print("[INFO]: Iniciando Pesquisas, Aguarde", 5)
-        for search in tqdm(range(self.search_number), desc="[INFO]: Progresso"):
+        self.script_info("Iniciando Pesquisas, Aguarde", 0)
+        for search in tqdm(range(self.search_number), desc="[INFO]: Progresso"): #type: ignore
             search_term = str(random.randint(1, 100))
             self._search_bing(search_term)
-        print("[INFO]: Pesquisas concluídas!")
-        print("[INFO]: Aguarde!")
-
-    def _end(self):
-        while True:
-            command = input("[INFO]: Digite [Q] para sair e [R] para reiniciar: ").lower()
-            if(command == "q"):
-                raise SystemExit
-            elif(command == "r"):
-                searcher_main()
+        print(self.script_info("Pesquisas concluidas!", 0))
+        print(self.script_info("Aguarde!", 0))
 
     def run(self):
         if self.webdriver_path:
@@ -165,7 +165,6 @@ class BingSearcher:
             if self.driver:
                 self._init_searches()
                 self.driver.quit()
-                self._end()
 
 def searcher_main():
     bing_searcher = BingSearcher()
