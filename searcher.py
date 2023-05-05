@@ -146,14 +146,14 @@ class BingSearcher:
                 
     def _search_bing(self, search_term):
         self.driver.get("https://www.bing.com/") 
-        search_box = self.driver.find_element("name", "q")  #type: ignore
+        search_box = self.driver.find_element("name", "q") 
         search_box.send_keys(search_term)
         time.sleep(3)
         search_box.send_keys(Keys.RETURN)
 
     def _init_searches(self):
         self.script_info("Iniciando Pesquisas, Aguarde", 0)
-        for search in tqdm(range(self.search_number), desc="[INFO]: Progresso"): #type: ignore
+        for search in tqdm(range(self.search_number), desc="[INFO]: Progresso"): 
             search_term = str(random.randint(1, 100))
             self._search_bing(search_term)
         print(self.script_info("Pesquisas concluidas!", 0))
