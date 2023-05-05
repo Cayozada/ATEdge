@@ -30,7 +30,6 @@ class Menu:
     def select_option(self, option):
         if(option == "e"):
             searcher.searcher_main()
-            # searcher.script_info("Pesquisas concluídas!", 0)
         elif(option == "q"):
             raise SystemExit
 
